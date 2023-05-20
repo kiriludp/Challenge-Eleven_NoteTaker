@@ -1,41 +1,37 @@
-
-const express = require('express');
-const path = require('path');
+const router = require('express').Router();
+const path = require('path')
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid')
+const db = require('../db/db.json')
 
-var uniqid = require('uniqid');
+router.get('/notes', (req, res) => {
+    res.json(db)
+});
+
+router.post('/notes', (req, res) => {
+    const newNote = req.body
+    newNote.id = uuidv4()
+    db.push(newNote)
+    console.log(db)
+    fs.writeFileSync(
+        "./db/db.json", JSON.stringify(db),
+        (err) => err && console.error(err));
+    res.json(db)
+});
+
+router.delete('/notes/:id', (req, res) => {
+    for (let i = 0; i < db.length; i++) {
+        if (req.params.id === db[i].id) {
+            db.splice(i, 1)
+            fs.writeFileSync(
+                "./db/db.json", JSON.stringify(newNote),
+                (err) => err && console.error(err));
+            break;
+        }
+    }
+    res.json(true)
+})
 
 
-module.exports = (app) => {
-
-    app.get('/api/notes', (req,res) => {
-        res.sendFile(path.join(_dirname, '../db/db.json'));
-    });
-
-    app.post('/api/notes', (req,res) => {
-        let db = fs.readFileSync('db/db.json');
-        db = JSON.parse(db);
-        res.json(db);
-
-        let userNote = {
-            title: req.body.title,
-            text: req.body.text,
-
-            id: uniqid(),
-        };
-
-        db.push(userNote);
-        fs.writeFileSync('db/db.json', JSON.stringify(db));
-        res.json(db);
-    });
-}
-
-//retrieve all exting notes
-
-/* app.get('/', function (req, res) {
-    res.render('notes', {
-        data:note
-    });
-}); */
-
+module.exports = router;
 
